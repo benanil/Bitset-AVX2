@@ -177,7 +177,7 @@ struct Bitset128
 struct Bitset256
 {
 	union {
-		unsigned long bits[4] = {};
+		unsigned long bits[4] = { 0 };
 		__m256i sse;
 	};
 	Bitset256() { Clear(); }
@@ -199,12 +199,10 @@ struct Bitset256
 	Bitset256 operator ^= (const Bitset256 other) { sse = _mm256_xor_si256(sse, other.sse); return *this; }
 
 	bool All() const {
-		return _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse,
-			_mm256_set_epi64x(~0ul, ~0ul, ~0ul, ~0ul))) == ~0ul;
+		return _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse, _mm256_set_epi64x(~0ul, ~0ul, ~0ul, ~0ul))) == ~0ul;
 	}
 	bool Any() const {
-		return _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse,
-			_mm256_set_epi64x(~0ul, ~0ul, ~0ul, ~0ul))) > 0;
+		return _mm256_movemask_epi8(_mm256_cmpge_epi64(sse[0], _mm256_setzero_si256())) > 0;
 	}
 	
 	int Count() const { return popcount256_epi64(sse); }
@@ -217,11 +215,11 @@ struct Bitset256
 struct Bitset512
 {
 	union {
-		unsigned long bits[8] = {};
+		unsigned long bits[8] = { 0 };
 		__m256i sse[2];
 	};
 
-	Bitset512() { Clear(); }
+	Bitset512() {  }
 	Bitset512(unsigned long repeat) { FillN(bits, 8, repeat); }
 	Bitset512(__m256i a, __m256i b) { sse[0] = a; sse[1] = b; }
 	Bitset512 operator~ () { return Bitset512(_mm256_xor_si256(sse[0], _mm256_set1_epi32(0xffffffff)), _mm256_xor_si256(sse[1], _mm256_set1_epi32(0xffffffff))); }
@@ -229,10 +227,9 @@ struct Bitset512
 	Bitset512 operator &  (const Bitset512 o) const { return { _mm256_and_si256(sse[0], o.sse[0]), _mm256_and_si256(sse[1], o.sse[1]) }; }
 	Bitset512 operator |  (const Bitset512 o) const { return { _mm256_or_si256 (sse[0], o.sse[0]), _mm256_or_si256 (sse[1], o.sse[1]) }; }
 	Bitset512 operator ^  (const Bitset512 o) const { return { _mm256_xor_si256(sse[0], o.sse[0]), _mm256_xor_si256(sse[1], o.sse[1]) }; }
-
-	Bitset512 operator &=  (const Bitset512 o) { sse[0] = _mm256_and_si256(sse[0], o.sse[0]); sse[1] = _mm256_and_si256(sse[1], o.sse[1]); return *this; }
-	Bitset512 operator |=  (const Bitset512 o) { sse[0] = _mm256_or_si256 (sse[0], o.sse[0]); sse[1] = _mm256_or_si256 (sse[1], o.sse[1]); return *this; }
-	Bitset512 operator ^=  (const Bitset512 o) { sse[0] = _mm256_xor_si256(sse[0], o.sse[0]); sse[1] = _mm256_xor_si256(sse[1], o.sse[1]); return *this; }
+	Bitset512 operator &= (const Bitset512 o) { sse[0] = _mm256_and_si256(sse[0], o.sse[0]); sse[1] = _mm256_and_si256(sse[1], o.sse[1]); return *this; }
+	Bitset512 operator |= (const Bitset512 o) { sse[0] = _mm256_or_si256 (sse[0], o.sse[0]); sse[1] = _mm256_or_si256 (sse[1], o.sse[1]); return *this; }
+	Bitset512 operator ^= (const Bitset512 o) { sse[0] = _mm256_xor_si256(sse[0], o.sse[0]); sse[1] = _mm256_xor_si256(sse[1], o.sse[1]); return *this; }
 
 	void And(Bitset512& o) { sse[0] = _mm256_and_si256(sse[0], o.sse[0]); sse[1] = _mm256_and_si256(sse[1], o.sse[1]); }
 	void Or (Bitset512& o) { sse[0] = _mm256_or_si256 (sse[0], o.sse[0]); sse[1] = _mm256_or_si256 (sse[1], o.sse[1]); }
@@ -242,7 +239,7 @@ struct Bitset512
 	void Set(int idx) { bits[idx / 64] |= 1ul << (idx & 63); }
 	void Reset(int idx) { bits[idx / 64] &= ~(1ul << (idx & 63)); }
 
-	void Clear() { sse[0] = sse[1] = _mm256_set_epi64x(0ul, 0ul, 0ul, 0ul); }
+	void Clear() { sse[0] = sse[1] = _mm256_setzero_si256(); }
 	void Flip()  {
 		sse[0] = _mm256_xor_si256(sse[0], _mm256_set1_epi32(0xffffffff)); 
 		sse[1] = _mm256_xor_si256(sse[1], _mm256_set1_epi32(0xffffffff));
@@ -250,13 +247,11 @@ struct Bitset512
 
 	bool All() const {
 		const __m256i full = _mm256_set_epi64x(~0ul, ~0ul, ~0ul, ~0ul);
-		return _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse[0], full)) == ~0ul &&
-			   _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse[1], full)) == ~0ul;
+		return _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse[0], full)) == ~0ul && _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse[1], full)) == ~0ul;
 	}
 	bool Any() const {
-		const __m256i full = _mm256_set_epi64x(~0ul, ~0ul, ~0ul, ~0ul);
-		return _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse[0], full)) > 0 &&
-			   _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse[1], full));
+		const __m256i zero = _mm256_setzero_si256();
+		return _mm256_movemask_epi8(_mm256_cmpge_epi64(sse[0], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpge_epi64(sse[1], zero)) > 0;
 	}
 
 	int Count() const {
@@ -267,7 +262,7 @@ struct Bitset512
 struct Bitset1024
 {
 	union {
-		unsigned long bits[16] = {};
+		unsigned long bits[16] = { 0 };
 		struct { Bitset512 b1, b2; };
 		struct { __m256i v[4]; };
 	};
@@ -293,15 +288,15 @@ struct Bitset1024
 	void Or(Bitset1024&  o) { v[0] = _ROR(v[0], o.v[0]); v[1] = _ROR(v[1], o.v[1]); v[2] = _ROR(v[2], o.v[2]); v[3] = _ROR(v[3], o.v[3]); }
 	void Xor(Bitset1024& o) { v[0] = _XOR(v[0], o.v[0]); v[1] = _XOR(v[1], o.v[1]); v[2] = _XOR(v[2], o.v[2]); v[3] = _XOR(v[3], o.v[3]); }
 
-	void Clear() { v[0] = v[1] = v[2] = v[3] = _mm256_setzero_si256();  }
+	void Clear() { v[0] = v[1] = v[2] = v[3] = _mm256_setzero_si256(); }
 	void Flip()  { b1.Flip(), b2.Flip(); }
 	bool All() const {
 		const __m256i full = _mm256_set_epi64x(~0ul, ~0ul, ~0ul, ~0ul);
 		return _mm256_movemask_epi8(_mm256_cmpeq_epi64(v[0], full)) == ~0ul && _mm256_movemask_epi8(_mm256_cmpeq_epi64(v[1], full)) == ~0ul && _mm256_movemask_epi8(_mm256_cmpeq_epi64(v[2], full)) == ~0ul && _mm256_movemask_epi8(_mm256_cmpeq_epi64(v[3], full)) == ~0ul;
 	}
 	bool Any() const {
-		const __m256i full = _mm256_set_epi64x(~0ul, ~0ul, ~0ul, ~0ul);
-		return _mm256_movemask_epi8(_mm256_cmpeq_epi64(v[0], full)) > 0 && _mm256_movemask_epi8(_mm256_cmpeq_epi64(v[1], full)) > 0 && _mm256_movemask_epi8(_mm256_cmpeq_epi64(v[2], full)) > 0 && _mm256_movemask_epi8(_mm256_cmpeq_epi64(v[3], full)) > 0;
+		const __m256i zero = _mm256_setzero_si256();
+		return _mm256_movemask_epi8(_mm256_cmpge_epi64(v[0], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpge_epi64(v[1], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpge_epi64(v[2], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpeq_epi64(v[3], zero)) > 0;
 	}
 	int Count() const { return popcount256_epi64(v[0]) + popcount256_epi64(v[1]) + popcount256_epi64(v[2]) + popcount256_epi64(v[3]); }
 };
