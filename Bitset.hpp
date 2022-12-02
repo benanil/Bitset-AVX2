@@ -202,7 +202,7 @@ struct Bitset256
 		return _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse, _mm256_set_epi64x(~0ul, ~0ul, ~0ul, ~0ul))) == ~0ul;
 	}
 	bool Any() const {
-		return _mm256_movemask_epi8(_mm256_cmpge_epi64(sse[0], _mm256_setzero_si256())) > 0;
+		return _mm256_movemask_epi8(_mm256_cmpgt_epi64(sse[0], _mm256_setzero_si256())) > 0;
 	}
 	
 	int Count() const { return popcount256_epi64(sse); }
@@ -251,7 +251,7 @@ struct Bitset512
 	}
 	bool Any() const {
 		const __m256i zero = _mm256_setzero_si256();
-		return _mm256_movemask_epi8(_mm256_cmpge_epi64(sse[0], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpge_epi64(sse[1], zero)) > 0;
+		return _mm256_movemask_epi8(_mm256_cmpgt_epi64(sse[0], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpgt_epi64(sse[1], zero)) > 0;
 	}
 
 	int Count() const {
@@ -296,7 +296,7 @@ struct Bitset1024
 	}
 	bool Any() const {
 		const __m256i zero = _mm256_setzero_si256();
-		return _mm256_movemask_epi8(_mm256_cmpge_epi64(v[0], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpge_epi64(v[1], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpge_epi64(v[2], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpeq_epi64(v[3], zero)) > 0;
+		return _mm256_movemask_epi8(_mm256_cmpgt_epi64(v[0], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpgt_epi64(v[1], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpgt_epi64(v[2], zero)) > 0 || _mm256_movemask_epi8(_mm256_cmpgt_epi64(v[3], zero)) > 0;
 	}
 	int Count() const { return popcount256_epi64(v[0]) + popcount256_epi64(v[1]) + popcount256_epi64(v[2]) + popcount256_epi64(v[3]); }
 };
