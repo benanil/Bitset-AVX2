@@ -1,3 +1,5 @@
+#include <immintrin.h> 
+
 #ifdef _MSC_VER
 #include <intrin.h>
 #    ifndef AXPOPCNT32(x)
@@ -293,7 +295,7 @@ struct Bitset1024
 	void Or(Bitset1024&  o) { v[0] = _ROR(v[0], o.v[0]); v[1] = _ROR(v[1], o.v[1]); v[2] = _ROR(v[2], o.v[2]); v[3] = _ROR(v[3], o.v[3]); }
 	void Xor(Bitset1024& o) { v[0] = _XOR(v[0], o.v[0]); v[1] = _XOR(v[1], o.v[1]); v[2] = _XOR(v[2], o.v[2]); v[3] = _XOR(v[3], o.v[3]); }
 
-	void Clear() { b1.Clear(), b2.Clear(); }
+	void Clear() { v[0] = v[1] = v[2] = v[3] = _mm256_setzero_si256();  }
 	void Flip()  { b1.Flip(), b2.Flip(); }
 	bool All() const {
 		const __m256i full = _mm256_set_epi64x(~0ul, ~0ul, ~0ul, ~0ul);
