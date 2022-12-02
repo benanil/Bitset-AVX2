@@ -156,13 +156,12 @@ struct Bitset128
 	bool Get(int idx) const { return !!(bits[idx > 63] & (1ul << (idx & 63ul))); }
 	void Set(int idx) { bits[idx > 63] |= 1ul << (idx & 63); }
 
-	Bitset128 operator &  (Bitset128& other) const { return { bits[0] & other.bits[0], bits[1] & other.bits[1] }; }
-	Bitset128 operator |  (Bitset128& other) const { return { bits[0] | other.bits[0], bits[1] | other.bits[1] }; }
-	Bitset128 operator ^  (Bitset128& other) const { return { bits[0] ^ other.bits[0], bits[1] ^ other.bits[1] }; }
-
-	Bitset128 operator &=  (Bitset128& other) { bits[0] &= other.bits[0], bits[1] &= other.bits[1]; return *this; }
-	Bitset128 operator |=  (Bitset128& other) { bits[0] |= other.bits[0], bits[1] |= other.bits[1]; return *this; }
-	Bitset128 operator ^=  (Bitset128& other) { bits[0] ^= other.bits[0], bits[1] ^= other.bits[1]; return *this; }
+	Bitset128 operator & (const Bitset128 other) const { return { bits[0] & other.bits[0], bits[1] & other.bits[1] }; }
+	Bitset128 operator | (const Bitset128 other) const { return { bits[0] | other.bits[0], bits[1] | other.bits[1] }; }
+	Bitset128 operator ^ (const Bitset128 other) const { return { bits[0] ^ other.bits[0], bits[1] ^ other.bits[1] }; }
+	Bitset128 operator &= (const Bitset128 other) { bits[0] &= other.bits[0], bits[1] &= other.bits[1]; return *this; }
+	Bitset128 operator |= (const Bitset128 other) { bits[0] |= other.bits[0], bits[1] |= other.bits[1]; return *this; }
+	Bitset128 operator ^= (const Bitset128 other) { bits[0] ^= other.bits[0], bits[1] ^= other.bits[1]; return *this; }
 
 	// sets bit to 0
 	void Reset(int idx) { bits[idx > 63] &= ~(1ul << (idx & 63)); }
@@ -192,13 +191,12 @@ struct Bitset256
 	void Flip() { sse = _mm256_xor_si256(sse, _mm256_set1_epi32(0xffffffff)); }
 	Bitset256 operator~ () { return { _mm256_xor_si256(sse, _mm256_set1_epi32(0xffffffff)) }; }
 
-	Bitset256 operator &  (Bitset256& other) const { return _mm256_and_si256(sse, other.sse); }
-	Bitset256 operator |  (Bitset256& other) const { return _mm256_or_si256 (sse, other.sse); }
-	Bitset256 operator ^  (Bitset256& other) const { return _mm256_xor_si256(sse, other.sse); }
-
-	Bitset256& operator &=  (Bitset256& other) { sse = _mm256_and_si256(sse, other.sse); return *this; }
-	Bitset256& operator |=  (Bitset256& other) { sse = _mm256_or_si256(sse, other.sse);  return *this; }
-	Bitset256& operator ^=  (Bitset256& other) { sse = _mm256_xor_si256(sse, other.sse); return *this; }
+	Bitset256 operator &  (const Bitset256 other) const { return _mm256_and_si256(sse, other.sse); }
+	Bitset256 operator |  (const Bitset256 other) const { return _mm256_or_si256 (sse, other.sse); }
+	Bitset256 operator ^  (const Bitset256 other) const { return _mm256_xor_si256(sse, other.sse); }
+	Bitset256 operator &= (const Bitset256 other) { sse = _mm256_and_si256(sse, other.sse); return *this; }
+	Bitset256 operator |= (const Bitset256 other) { sse = _mm256_or_si256(sse, other.sse);  return *this; }
+	Bitset256 operator ^= (const Bitset256 other) { sse = _mm256_xor_si256(sse, other.sse); return *this; }
 
 	bool All() const {
 		return _mm256_movemask_epi8(_mm256_cmpeq_epi64(sse,
