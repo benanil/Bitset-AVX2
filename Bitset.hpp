@@ -146,10 +146,9 @@ struct Bitset128
 
 	Bitset128() { bits[0] = 0ul; bits[1] = 0ul; }
 	Bitset128(const char* str) {
-		int currBits = 0, i = 0;
+		int i = 0;
 		while (*str) {
-			bits[currBits] |= (1 << (i & 63)) * (*str++ - '0');
-			currBits = ++i >> 6;
+			bits[i > 63] |= (1 << (i & 63)) * (*str++ - '0');
 		}
 	}
 	Bitset128(unsigned long repeat) { bits[0] = repeat; bits[1] = repeat;  }
